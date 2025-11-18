@@ -6,7 +6,7 @@ public class Solver {
     private String inputString;
     private List<String> transformedString;
     private Stack<String> parsingStack;
-    private Stack<String> calculatingStack;
+    private Stack<Double> calculatingStack;
     private static final Map<String, Integer> operationsPrecedence = Map.of("(", 1, "|", 1,
             "+", 2, "-", 2, "*", 3, "/", 3, "^", 4, "!", 5);
     private static final List<String> functions = List.of("sin", "cos", "tg", "ctg", "exp", "log");
@@ -161,7 +161,52 @@ public class Solver {
         }
         System.out.println(transformedString);
     }
-    public void solveTheExpression() {
 
+    private boolean isANumber(String object) {
+        for (char symbol : object.toCharArray()) {
+            if (!Character.isDigit(symbol) && symbol != '.') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public void solveTheExpression() {
+        transformString();
+        for (String currentElem : transformedString) {
+            if (isANumber(currentElem)) {
+                calculatingStack.add(Double.parseDouble(currentElem));
+            }
+            else {
+                double currentNumber;
+                switch (currentElem) {
+                    case "+" -> {
+                        currentNumber = calculatingStack.pop();
+                        calculatingStack.add(calculatingStack.pop() + currentNumber);
+                    }
+                    case "-" -> {
+                        currentNumber = calculatingStack.pop();
+                        calculatingStack.add(calculatingStack.pop() - currentNumber);
+                    }
+                    case "*" -> {
+                        currentNumber = calculatingStack.pop();
+                        calculatingStack.add(calculatingStack.pop() * currentNumber);
+                    }
+                    case "/" -> {
+                        currentNumber = calculatingStack.pop();
+                        calculatingStack.add(calculatingStack.pop() / currentNumber);
+                    }
+                    case "|" -> {
+                        currentNumber = calculatingStack.pop();
+                        calculatingStack.add(Math.abs(currentNumber));
+                    }
+                    case "^" -> {
+                        currentNumber = calculatingStack.pop();
+                        calculatingStack.add(Math.pow(calculatingStack.pop(), currentNumber));
+                    }
+                }
+            }
+        }
+        System.out.println(calculatingStack);
     }
 }
