@@ -4,7 +4,7 @@ package org.example;
 // click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 public class Main {
     public static void main(String[] args) {
-        String expression = "|2^2|";
+        String expression = "2 4 * +";
         Solver object = new Solver(expression);
         object.solveTheExpression();
     }

@@ -20,6 +20,33 @@ public class Solver {
         result = 0;
     }
 
+    private boolean isANumber(String object) {
+        boolean foundOtherNumbersAfterMinus = false;
+        for (char symbol : object.toCharArray()) {
+            if (!Character.isDigit(symbol) && symbol != '.') {
+                if (!(symbol == '-' && object.length() > 1)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private double factorial(double number) {
+        if (number < 0) {
+            throw new IllegalArgumentException("Factorial operation is not defined for negative numbers");
+        }
+        if (number % 1 != 0) {
+            throw new IllegalArgumentException("Factorial operation is not defined for floating-point numbers");
+        }
+        double result = 1;
+        int numberToInteger = (int) number;
+        for (int i = 2; i <= numberToInteger; i++) {
+            result *= i;
+        }
+        return result;
+    }
+
     private void transformString() {
         String previousContent = "";
         char currentSymbol;
@@ -114,7 +141,7 @@ public class Solver {
                         transformedString.add(currentStackElem);
                         currentStackElem = parsingStack.pop();
                     }
-                    if (!foundContent) {
+                    if (!foundContent && !isANumber(previousContent)) {
                         throw new IllegalArgumentException("No content inside the module");
                     }
                     transformedString.add("|");
@@ -122,13 +149,30 @@ public class Solver {
                     previousContent = "closingModule";
                 }
             }
+            else if (currentSymbol == '!') {
+                if (enteringTheNumber) {
+                    if (currentNumber.charAt(currentNumber.length() - 1) == '.') {
+                        throw new  IllegalArgumentException("No digits after decimal sign in the number");
+                    }
+                    transformedString.add(currentNumber);
+                    previousContent = currentNumber;
+                    currentNumber = "";
+                    enteringTheNumber = false;
+                }
+                if (previousContent.equals(")") || previousContent.equals("closingModule") || isANumber(previousContent)) {
+                    parsingStack.add(String.valueOf(currentSymbol));
+                }
+                else {
+                    throw new IllegalArgumentException("Invalid usage of factorial operation");
+                }
+            }
             else if (currentSymbol == '+' || currentSymbol == '-' || currentSymbol == '*' || currentSymbol == '/' ||
-                    currentSymbol == '^' || currentSymbol == '!') {
-                if (enteringTheLastSymbol && currentSymbol != '!') {
+                    currentSymbol == '^') {
+                if (enteringTheLastSymbol) {
                     throw new IllegalArgumentException(
                             "Operation sign without a variable at the end of the expression");
                 }
-                if (currentSymbol == '^' || currentSymbol == '!') {
+                if (currentSymbol == '^') {
                     if (enteringTheNumber) {
                         if (currentNumber.charAt(currentNumber.length() - 1) == '.') {
                             throw new  IllegalArgumentException("No digits after decimal sign in the number");
@@ -139,36 +183,38 @@ public class Solver {
                         enteringTheNumber = false;
                     }
                 }
-                if (parsingStack.isEmpty()) {
-                    parsingStack.add(String.valueOf(currentSymbol));
+                if (currentSymbol == '-') {
+                    if (Character.isDigit(inputString.charAt(i + 1))) {
+                        currentNumber += currentSymbol;
+                        enteringTheNumber = true;
+                    }
+                }
+                if (!enteringTheNumber) {
+                    if (parsingStack.isEmpty()) {
+                        parsingStack.add(String.valueOf(currentSymbol));
+                    }
+                    else {
+                        String currentStackElem = parsingStack.pop();
+                        while (operationsPrecedence.getOrDefault(currentStackElem, -1) >=
+                                operationsPrecedence.getOrDefault(String.valueOf(currentSymbol), -1) && !parsingStack.isEmpty()) {
+                            transformedString.add(currentStackElem);
+                            currentStackElem = parsingStack.pop();
+                        }
+                        parsingStack.add(currentStackElem);
+                        parsingStack.add(String.valueOf(currentSymbol));
+                        System.out.println(parsingStack);
+                    }
+                    previousContent = String.valueOf(currentSymbol);
                 }
                 else {
-                    String currentStackElem = parsingStack.pop();
-                    while (operationsPrecedence.getOrDefault(currentStackElem, -1) >=
-                        operationsPrecedence.getOrDefault(String.valueOf(currentSymbol), -1) && !parsingStack.isEmpty()) {
-                        transformedString.add(currentStackElem);
-                        currentStackElem = parsingStack.pop();
-                    }
-                    parsingStack.add(currentStackElem);
-                    parsingStack.add(String.valueOf(currentSymbol));
-                    System.out.println(parsingStack);
+                    previousContent = currentNumber;
                 }
-                previousContent = String.valueOf(currentSymbol);
             }
         }
         while (!parsingStack.isEmpty()) {
             transformedString.add(parsingStack.pop());
         }
         System.out.println(transformedString);
-    }
-
-    private boolean isANumber(String object) {
-        for (char symbol : object.toCharArray()) {
-            if (!Character.isDigit(symbol) && symbol != '.') {
-                return false;
-            }
-        }
-        return true;
     }
 
     public void solveTheExpression() {
@@ -204,6 +250,11 @@ public class Solver {
                         currentNumber = calculatingStack.pop();
                         calculatingStack.add(Math.pow(calculatingStack.pop(), currentNumber));
                     }
+                    case "!" -> {
+                        currentNumber = calculatingStack.pop();
+                        calculatingStack.add(factorial(currentNumber));
+                    }
+
                 }
             }
         }
