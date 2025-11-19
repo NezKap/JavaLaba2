@@ -21,7 +21,6 @@ public class Solver {
     }
 
     private boolean isANumber(String object) {
-        boolean foundOtherNumbersAfterMinus = false;
         for (char symbol : object.toCharArray()) {
             if (!Character.isDigit(symbol) && symbol != '.') {
                 if (!(symbol == '-' && object.length() > 1)) {
@@ -50,11 +49,9 @@ public class Solver {
     private void transformString() {
         String previousContent = "";
         char currentSymbol;
-        boolean dotInTheNumber = false;
         String currentNumber = "";
         String currentFunction = "";
         boolean foundContent = false;
-        boolean previousContentIsNumber = false;
         boolean enteringTheNumber = false;
         boolean enteringTheLastSymbol = false;
         for (int i = 0; i < inputString.length(); i++) {
@@ -80,59 +77,54 @@ public class Solver {
             }
             else if (Character.isAlphabetic(currentSymbol)) {
                 if (currentFunction.isEmpty()) {
-                    if (currentSymbol == 's' || currentSymbol == 'c' || currentSymbol == 't' || currentSymbol == 'e' ||
-                            currentSymbol == 'l') {
-                        currentFunction += currentSymbol;
-                    }
-                    else {
-                        Scanner scanner = new Scanner(System.in);
-                        System.out.println("Enter the value for " + currentSymbol + ':');
-                        currentNumber = scanner.nextLine();
-                        if (!isANumber(currentNumber)) {
-                            throw new IllegalArgumentException("Entered data is not a number");
-                        }
-                        transformedString.add(currentNumber);
-                        currentNumber = "";
-                        previousContent = currentNumber;
-                    }
+                    currentFunction += currentSymbol;
+                    previousContent = currentFunction;
                 }
                 else {
                     if (currentFunction.equals("s") && currentSymbol == 'i') {
                         currentFunction += currentSymbol;
+                        previousContent = currentFunction;
                     }
                     else if (currentFunction.equals("si") && currentSymbol == 'n') {
                         currentFunction += currentSymbol;
+                        previousContent = currentFunction;
                         parsingStack.add(currentFunction);
                         currentFunction = "";
                     }
                     else if (currentFunction.equals("c") && (currentSymbol == 'o' || currentSymbol == 't')) {
                         currentFunction += currentSymbol;
+                        previousContent = currentFunction;
                     }
                     else if (currentFunction.equals("co") && currentSymbol == 's' ||
                             currentFunction.equals("ct") && currentSymbol == 'g') {
                         currentFunction += currentSymbol;
+                        previousContent = currentFunction;
                         parsingStack.add(currentFunction);
                         currentFunction = "";
                     }
                     else if (currentFunction.equals("t") && currentSymbol == 'g') {
                         currentFunction += currentSymbol;
+                        previousContent = currentFunction;
                         parsingStack.add(currentFunction);
                         currentFunction = "";
                     }
                     else if (currentFunction.equals("e") && currentSymbol == 'x') {
                         currentFunction += currentSymbol;
+                        previousContent = currentFunction;
                     }
                     else if (currentFunction.equals("ex") && currentSymbol == 'p') {
                         currentFunction += currentSymbol;
+                        previousContent = currentFunction;
                         parsingStack.add(currentFunction);
                         currentFunction = "";
                     }
                     else if (currentFunction.equals("l") && currentSymbol == 'n') {
                         currentFunction += currentSymbol;
+                        previousContent = currentFunction;
                         parsingStack.add(currentFunction);
                         currentFunction = "";
                     }
-                    else if (currentFunction.length() == 1) {
+                    else {
                         throw new IllegalArgumentException("Invalid function name");
                     }
                 }
@@ -147,19 +139,18 @@ public class Solver {
                     currentNumber = "";
                     enteringTheNumber = false;
                 }
-                /*
                 if (currentFunction.length() == 1) {
                     Scanner scanner = new Scanner(System.in);
-                    System.out.println("Enter the value for " + currentFunction + ':');
+                    System.out.println("Enter the value for " + currentSymbol + ':');
                     currentNumber = scanner.nextLine();
                     if (!isANumber(currentNumber)) {
                         throw new IllegalArgumentException("Entered data is not a number");
                     }
-                    currentFunction = "";
+                    transformedString.add(currentNumber);
                     previousContent = currentNumber;
+                    currentNumber = "";
+                    currentFunction = "";
                 }
-
-                 */
             }
             else if (currentSymbol == '(') {
                 if (!enteringTheNumber) {
@@ -186,13 +177,18 @@ public class Solver {
                             throw new IllegalArgumentException("Entered data is not a number");
                         }
                         transformedString.add(currentNumber);
+                        previousContent = currentNumber;
                         currentNumber = "";
                         currentFunction = "";
-                        previousContent = currentNumber;
+                    }
+                    else {
+                        throw new IllegalArgumentException("Invalid form of the function");
                     }
                 }
+                if (parsingStack.isEmpty()) {
+                    throw new IllegalArgumentException("Invalid placement of the brackets in the expression");
+                }
                 String currentStackElem = parsingStack.pop();
-                /*
                 while (!currentStackElem.equals("(")) {
                     foundContent = true;
                     transformedString.add(currentStackElem);
@@ -201,30 +197,17 @@ public class Solver {
                 if (!parsingStack.isEmpty()) {
                     currentStackElem = parsingStack.pop();
                     if (!functions.contains(currentStackElem)) {
-                        if (!foundContent) {
+                        if (!foundContent && !isANumber(previousContent)) {
                             throw new IllegalArgumentException("No content inside the brackets");
                         }
+                        parsingStack.add(currentStackElem);
                     }
-                    transformedString.add(currentStackElem);
-                }
-                foundContent = false;
-                previousContent = ")";
-
-                 */
-
-                while (!currentStackElem.equals("(")) {
-                    foundContent = true;
-                    transformedString.add(currentStackElem);
-                    currentStackElem = parsingStack.pop();
-                }
-                if (!functions.contains(currentStackElem)) {
-                    if (!foundContent && !isANumber(previousContent)) {
-                        throw new IllegalArgumentException("No content inside the module");
+                    else {
+                        transformedString.add(currentStackElem);
                     }
                 }
                 foundContent = false;
                 previousContent = ")";
-
             }
             else if (currentSymbol == '|') {
                 if (!enteringTheNumber && (previousContent.isEmpty() || previousContent.equals("+") ||
@@ -234,7 +217,7 @@ public class Solver {
                     parsingStack.add("|");
                     previousContent = "openingModule";
                 }
-                else if (!currentFunction.isEmpty() || enteringTheNumber || previousContent.equals(")") || previousContent.equals("closingModule")) {
+                else if (isANumber(previousContent) || !currentFunction.isEmpty() || enteringTheNumber || previousContent.equals(")") || previousContent.equals("closingModule")) {
                     if (enteringTheNumber) {
                         if (currentNumber.charAt(currentNumber.length() - 1) == '.') {
                             throw new  IllegalArgumentException("No digits after decimal sign in the number");
@@ -253,9 +236,9 @@ public class Solver {
                                 throw new IllegalArgumentException("Entered data is not a number");
                             }
                             transformedString.add(currentNumber);
+                            previousContent = currentNumber;
                             currentNumber = "";
                             currentFunction = "";
-                            previousContent = currentNumber;
                         }
                     }
                     String currentStackElem = parsingStack.pop();
@@ -342,11 +325,13 @@ public class Solver {
                     previousContent = currentNumber;
                 }
             }
+            else {
+                throw new IllegalArgumentException("Invalid form of the expression");
+            }
         }
         while (!parsingStack.isEmpty()) {
             transformedString.add(parsingStack.pop());
         }
-        System.out.println(transformedString);
     }
 
     public void solveTheExpression() {
@@ -360,18 +345,33 @@ public class Solver {
                 switch (currentElem) {
                     case "+" -> {
                         currentNumber = calculatingStack.pop();
+                        if (calculatingStack.isEmpty()) {
+                            throw new IllegalArgumentException("Invalid form of the expression");
+                        }
                         calculatingStack.add(calculatingStack.pop() + currentNumber);
                     }
                     case "-" -> {
                         currentNumber = calculatingStack.pop();
+                        if (calculatingStack.isEmpty()) {
+                            throw new IllegalArgumentException("Invalid form of the expression");
+                        }
                         calculatingStack.add(calculatingStack.pop() - currentNumber);
                     }
                     case "*" -> {
                         currentNumber = calculatingStack.pop();
+                        if (calculatingStack.isEmpty()) {
+                            throw new IllegalArgumentException("Invalid form of the expression");
+                        }
                         calculatingStack.add(calculatingStack.pop() * currentNumber);
                     }
                     case "/" -> {
                         currentNumber = calculatingStack.pop();
+                        if (calculatingStack.isEmpty()) {
+                            throw new IllegalArgumentException("Invalid form of the expression");
+                        }
+                        if (currentNumber == 0) {
+                            throw new ArithmeticException("Division by zero is not allowed");
+                        }
                         calculatingStack.add(calculatingStack.pop() / currentNumber);
                     }
                     case "|" -> {
@@ -380,6 +380,9 @@ public class Solver {
                     }
                     case "^" -> {
                         currentNumber = calculatingStack.pop();
+                        if (calculatingStack.isEmpty()) {
+                            throw new IllegalArgumentException("Invalid form of the expression");
+                        }
                         calculatingStack.add(Math.pow(calculatingStack.pop(), currentNumber));
                     }
                     case "!" -> {
