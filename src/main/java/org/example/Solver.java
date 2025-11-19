@@ -192,20 +192,39 @@ public class Solver {
                     }
                 }
                 String currentStackElem = parsingStack.pop();
+                /*
                 while (!currentStackElem.equals("(")) {
                     foundContent = true;
                     transformedString.add(currentStackElem);
                     currentStackElem = parsingStack.pop();
                 }
-                currentStackElem = parsingStack.pop();
-                if (!functions.contains(currentStackElem)) {
-                    if (!foundContent) {
-                        throw new IllegalArgumentException("No content inside the brackets");
+                if (!parsingStack.isEmpty()) {
+                    currentStackElem = parsingStack.pop();
+                    if (!functions.contains(currentStackElem)) {
+                        if (!foundContent) {
+                            throw new IllegalArgumentException("No content inside the brackets");
+                        }
                     }
+                    transformedString.add(currentStackElem);
                 }
-                transformedString.add(currentStackElem);
                 foundContent = false;
                 previousContent = ")";
+
+                 */
+
+                while (!currentStackElem.equals("(")) {
+                    foundContent = true;
+                    transformedString.add(currentStackElem);
+                    currentStackElem = parsingStack.pop();
+                }
+                if (!functions.contains(currentStackElem)) {
+                    if (!foundContent && !isANumber(previousContent)) {
+                        throw new IllegalArgumentException("No content inside the module");
+                    }
+                }
+                foundContent = false;
+                previousContent = ")";
+
             }
             else if (currentSymbol == '|') {
                 if (!enteringTheNumber && (previousContent.isEmpty() || previousContent.equals("+") ||
@@ -307,8 +326,15 @@ public class Solver {
                             transformedString.add(currentStackElem);
                             currentStackElem = parsingStack.pop();
                         }
-                        parsingStack.add(currentStackElem);
-                        parsingStack.add(String.valueOf(currentSymbol));
+                        if (operationsPrecedence.getOrDefault(currentStackElem, -1) >=
+                                operationsPrecedence.getOrDefault(String.valueOf(currentSymbol), -1)) {
+                            transformedString.add(currentStackElem);
+                            parsingStack.add(String.valueOf(currentSymbol));
+                        }
+                        else {
+                            parsingStack.add(currentStackElem);
+                            parsingStack.add(String.valueOf(currentSymbol));
+                        }
                     }
                     previousContent = String.valueOf(currentSymbol);
                 }
@@ -320,6 +346,7 @@ public class Solver {
         while (!parsingStack.isEmpty()) {
             transformedString.add(parsingStack.pop());
         }
+        System.out.println(transformedString);
     }
 
     public void solveTheExpression() {
@@ -395,6 +422,13 @@ public class Solver {
     public double getResult() {
         solveTheExpression();
         return result;
+    }
+
+    public void changeTheExpression(String object) {
+        inputString = object;
+        transformedString.clear();
+        parsingStack.clear();
+        calculatingStack.clear();
     }
 
     @Override
