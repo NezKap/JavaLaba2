@@ -7,5 +7,6 @@ public class Main {
         String expression = "|x + y|";
         Solver object = new Solver(expression);
         object.solveTheExpression();
+        System.out.println(object);
     }
 }

@@ -10,7 +10,7 @@ public class Solver {
     private static final Map<String, Integer> operationsPrecedence = Map.of("(", 1, "|", 1,
             "+", 2, "-", 2, "*", 3, "/", 3, "^", 4, "!", 5);
     private static final List<String> functions = List.of("sin", "cos", "tg", "ctg", "exp", "ln");
-    private Integer result;
+    private double result;
 
     public Solver(String expression) {
         inputString = expression;
@@ -192,7 +192,6 @@ public class Solver {
                     }
                 }
                 String currentStackElem = parsingStack.pop();
-                System.out.println(currentStackElem);
                 while (!currentStackElem.equals("(")) {
                     foundContent = true;
                     transformedString.add(currentStackElem);
@@ -310,7 +309,6 @@ public class Solver {
                         }
                         parsingStack.add(currentStackElem);
                         parsingStack.add(String.valueOf(currentSymbol));
-                        System.out.println(parsingStack);
                     }
                     previousContent = String.valueOf(currentSymbol);
                 }
@@ -322,7 +320,6 @@ public class Solver {
         while (!parsingStack.isEmpty()) {
             transformedString.add(parsingStack.pop());
         }
-        System.out.println(transformedString);
     }
 
     public void solveTheExpression() {
@@ -392,6 +389,18 @@ public class Solver {
                 }
             }
         }
-        System.out.println(calculatingStack);
+        result = calculatingStack.pop();
+    }
+
+    public double getResult() {
+        solveTheExpression();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        String resultString = "";
+        resultString += result;
+        return resultString;
     }
 }
