@@ -4,7 +4,19 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/**
+ * Класс для проведения unit-тестов
+ * для проверки корректной работы
+ * методов класса Solver
+ * @author Егор
+ * @version 1.0
+ */
+
 public class Laba2Test {
+
+    /**
+     * Тестирование вычисления базовых выражений
+     */
 
     @Test
     void solvingBasicExpressions() {
@@ -26,6 +38,11 @@ public class Laba2Test {
         assertEquals("42.0", object.toString());
     }
 
+    /**
+     * Тестирование вычисления выражений, содержащих
+     * числа с плавающей точкой
+     */
+
     @Test
     void correctSolvingWithFloatingPointNumbers() {
         String expression = "25.7 + 6.42";
@@ -37,6 +54,11 @@ public class Laba2Test {
         object.solveTheExpression();
         assertEquals(String.valueOf(42.5 / 7.6), object.toString());
     }
+
+    /**
+     * Тестирование вычисления выражений, содержащих
+     * тригонометрические функции
+     */
 
     @Test
     void correctSolvingWithTrigonometricFunctions() {
@@ -54,6 +76,11 @@ public class Laba2Test {
         assertEquals(String.valueOf(Math.tan(75 + Math.sin(50))), object.toString());
     }
 
+    /**
+     * Тестирование выражений, содержащих
+     * внутри себя экспоненту и логарифм
+     */
+
     @Test
     void correctSolvingWithLnAndExp() {
         String expression = "exp(6)";
@@ -66,18 +93,29 @@ public class Laba2Test {
         assertEquals(String.valueOf(Math.log(2)), object.toString());
     }
 
+    /**
+     * Тестирование выражений, содержащих
+     * буквенные переменные
+     * <p>
+     * Данный тест брался при x = -3
+     * и y = 5, вводимых с клавиатуры
+     * </p>
+     */
+
     @Test
-    void correctSolvingWithAlphabeticVaribales() {
+    void correctSolvingWithAlphabeticVariables() {
         String expression = "|x + y| * 7";
         Solver object = new Solver(expression);
-                /*
         object.solveTheExpression();
         assertEquals("14.0", object.toString());
-         */
         expression = "xe + 7";
         object.changeTheExpression(expression);
         assertThrows(IllegalArgumentException.class, object::solveTheExpression);
     }
+
+    /**
+     * Тестирование решения сложных выражений
+     */
 
     @Test
     void solvingComplexExpressions() {
@@ -86,6 +124,11 @@ public class Laba2Test {
         object.solveTheExpression();
         assertEquals(String.valueOf((25.6 + Math.pow(72, 2)) / (Math.exp(9) * 5  / 2.65)), object.toString());
     }
+
+    /**
+     * Тестирование обработки исключений
+     * при попытке деления на 0 вследствие вычисления выражения
+     */
 
     @Test
     void divisioningByZero() {
@@ -99,6 +142,11 @@ public class Laba2Test {
         object.changeTheExpression(expression);
         assertThrows(ArithmeticException.class, object::solveTheExpression);
     }
+
+    /**
+     * Тестирование обработки исключений
+     * при некорректной исходной форме записи выражения
+     */
 
     @Test
     void invalidExpression() {
@@ -136,6 +184,12 @@ public class Laba2Test {
         object.changeTheExpression(expression);
         assertThrows(IllegalArgumentException.class, object::solveTheExpression);
     }
+
+    /**
+     * Тестирование корректного вычисления выржания
+     * методом solveTheExpression при работе
+     * с краевыми условиями
+     */
 
     @Test
     void edgeCases() {

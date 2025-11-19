@@ -2,6 +2,22 @@ package org.example;
 
 import java.util.*;
 
+/**
+ * Класс, позволяющий вычислять выражение из строки,
+ * задавемой пользователем
+ * <p>
+ * Имеется поддержка операций сложения, вычитания,
+ * унможения, деления, возведения в степени, факториала
+ * числа
+ * </p>
+ * <p>
+ * Имеется поддержка функций синуса, консинуса, тангенса,
+ * когансента, экспоненты и натурального логарифма
+ * </p>
+ * @author Егор
+ * @version 1.0
+ */
+
 public class Solver {
     private String inputString;
     private List<String> transformedString;
@@ -12,6 +28,12 @@ public class Solver {
     private static final List<String> functions = List.of("sin", "cos", "tg", "ctg", "exp", "ln");
     private double result;
 
+    /**
+     * Конструктор класса вычислителя
+     * выражений
+     * @param expression выражение в виде строки
+     */
+
     public Solver(String expression) {
         inputString = expression;
         transformedString = new ArrayList<>();
@@ -19,6 +41,12 @@ public class Solver {
         calculatingStack = new Stack<>();
         result = 0;
     }
+
+    /**
+     * Метод определения, является ли строка числом
+     * @param object строка, которая потенциально является числом
+     * @return true, если object является числом, иначе - false
+     */
 
     private boolean isANumber(String object) {
         for (char symbol : object.toCharArray()) {
@@ -30,6 +58,13 @@ public class Solver {
         }
         return true;
     }
+
+    /**
+     * Метод вычисления факториала числа
+     * @param number число, факториал которого необходимо вычислить в данном методе
+     * @return факториал числа number
+     * @throws IllegalArgumentException при попытке взять факториал от отрицательного или дробного числа
+     */
 
     private double factorial(double number) {
         if (number < 0) {
@@ -46,6 +81,12 @@ public class Solver {
         return result;
     }
 
+    /**
+     * Метод преобразования исходной строки в
+     * обратную польскую запись
+     * @throws IllegalArgumentException, если исходная строка имеет некорректный формат
+     */
+
     private void transformString() {
         String previousContent = "";
         char currentSymbol;
@@ -59,6 +100,9 @@ public class Solver {
             if (i == inputString.length() - 1) {
                 enteringTheLastSymbol = true;
             }
+
+            // Составление числа
+
             if (Character.isDigit(currentSymbol) || currentSymbol == '.') {
                 enteringTheNumber = true;
                 if (currentSymbol == '.' && currentNumber.contains(".")) {
@@ -75,11 +119,17 @@ public class Solver {
                     enteringTheNumber = false;
                 }
             }
+
+            // Чтение буквенных символов
+
             else if (Character.isAlphabetic(currentSymbol)) {
                 if (currentFunction.isEmpty()) {
                     currentFunction += currentSymbol;
                     previousContent = currentFunction;
                 }
+
+                // Составление функций
+
                 else {
                     if (currentFunction.equals("s") && currentSymbol == 'i') {
                         currentFunction += currentSymbol;
@@ -129,6 +179,9 @@ public class Solver {
                     }
                 }
             }
+
+            // Добавление в стек чисел и получение значения переменных
+
             else if (currentSymbol == ' ') {
                 if (!currentNumber.isEmpty()) {
                     if (currentNumber.charAt(currentNumber.length() - 1) == '.') {
@@ -141,7 +194,7 @@ public class Solver {
                 }
                 if (currentFunction.length() == 1) {
                     Scanner scanner = new Scanner(System.in);
-                    System.out.println("Enter the value for " + currentSymbol + ':');
+                    System.out.println("Enter the value for " + currentFunction + ':');
                     currentNumber = scanner.nextLine();
                     if (!isANumber(currentNumber)) {
                         throw new IllegalArgumentException("Entered data is not a number");
@@ -152,13 +205,22 @@ public class Solver {
                     currentFunction = "";
                 }
             }
+
+            // Добавление в стек открывающих скобок
+
             else if (currentSymbol == '(') {
                 if (!enteringTheNumber) {
                     parsingStack.add(String.valueOf(currentSymbol));
                 }
                 previousContent = "(";
             }
+
+            // Обработка закрывающих скобок
+
             else if (currentSymbol == ')') {
+
+                // Добавление числа перед закрывающей скобкой
+
                 if (enteringTheNumber) {
                     if (currentNumber.charAt(currentNumber.length() - 1) == '.') {
                         throw new IllegalArgumentException("No digits after decimal sign in the number");
@@ -168,6 +230,9 @@ public class Solver {
                     currentNumber = "";
                     enteringTheNumber = false;
                 }
+
+                // Добавление переменной перед закрывающей скобкой
+
                 else if (!currentFunction.isEmpty()) {
                     if (currentFunction.length() == 1) {
                         Scanner scanner = new Scanner(System.in);
@@ -188,6 +253,13 @@ public class Solver {
                 if (parsingStack.isEmpty()) {
                     throw new IllegalArgumentException("Invalid placement of the brackets in the expression");
                 }
+
+                /*
+                Производится извлечение символов из стека в составляемую строку до тех пор,
+                пока в стеке не встретится открывающая скобка, которая далее уничтожается.
+                Закрывающая скобка также не идёт в составляемую строку
+                 */
+
                 String currentStackElem = parsingStack.pop();
                 while (!currentStackElem.equals("(")) {
                     foundContent = true;
@@ -196,6 +268,9 @@ public class Solver {
                 }
                 if (!parsingStack.isEmpty()) {
                     currentStackElem = parsingStack.pop();
+
+                    // Обработка скобок, которые содержат в себе аргумент функции
+
                     if (!functions.contains(currentStackElem)) {
                         if (!foundContent && !isANumber(previousContent)) {
                             throw new IllegalArgumentException("No content inside the brackets");
@@ -209,7 +284,13 @@ public class Solver {
                 foundContent = false;
                 previousContent = ")";
             }
+
+            // Обработка модуля в выражении
+
             else if (currentSymbol == '|') {
+
+                // Добавление открывающего модуля в стек
+
                 if (!enteringTheNumber && (previousContent.isEmpty() || previousContent.equals("+") ||
                         previousContent.equals("-") ||
                         previousContent.equals("*") || previousContent.equals("/") ||
@@ -217,6 +298,9 @@ public class Solver {
                     parsingStack.add("|");
                     previousContent = "openingModule";
                 }
+
+                // Обработка закрывающего модуля аналогично закрывающей скобке
+
                 else if (isANumber(previousContent) || !currentFunction.isEmpty() || enteringTheNumber || previousContent.equals(")") || previousContent.equals("closingModule")) {
                     if (enteringTheNumber) {
                         if (currentNumber.charAt(currentNumber.length() - 1) == '.') {
@@ -247,16 +331,25 @@ public class Solver {
                         transformedString.add(currentStackElem);
                         currentStackElem = parsingStack.pop();
                     }
+
+                    // Обработка модуля, который содержит внутри себя аргумент функции
+
                     if (!functions.contains(currentStackElem)) {
                         if (!foundContent && !isANumber(previousContent)) {
                             throw new IllegalArgumentException("No content inside the module");
                         }
                     }
+
+                    // Добавление одного знака модуля в составляемую строку
+
                     transformedString.add("|");
                     foundContent = false;
                     previousContent = "closingModule";
                 }
             }
+
+            // Обработка операции факториала
+
             else if (currentSymbol == '!') {
                 if (enteringTheNumber) {
                     if (currentNumber.charAt(currentNumber.length() - 1) == '.') {
@@ -274,6 +367,9 @@ public class Solver {
                     throw new IllegalArgumentException("Invalid usage of factorial operation");
                 }
             }
+
+            // Обработка операций сложения, вычитания, умножения, деления и возведения в степень
+
             else if (currentSymbol == '+' || currentSymbol == '-' || currentSymbol == '*' || currentSymbol == '/' ||
                     currentSymbol == '^') {
                 if (enteringTheLastSymbol) {
@@ -297,6 +393,14 @@ public class Solver {
                         enteringTheNumber = true;
                     }
                 }
+
+                /*
+                Если стек пуст или находящиеся в нём символы имеют меньший приоритет, чем приоритет рассматриваемого
+                символа, то помещаем текущий символ в стек, иначе удаляем символы из стека и добавляемых их в
+                составляемую строку до тех пор, пока стек не опустеет или находящийся на вершине символ не будет иметь
+                меньший приоритет, чем приоритет текущего символа. В конце добавляем рассматриваемый символ в стек.
+                 */
+
                 if (!enteringTheNumber) {
                     if (parsingStack.isEmpty()) {
                         parsingStack.add(String.valueOf(currentSymbol));
@@ -329,10 +433,19 @@ public class Solver {
                 throw new IllegalArgumentException("Invalid form of the expression");
             }
         }
+
+        // Извлечение оставшихся элементов стека в составляемую строку
+
         while (!parsingStack.isEmpty()) {
             transformedString.add(parsingStack.pop());
         }
     }
+
+    /**
+     * Метод вычисления результата выражения из составленной обратной польской записи
+     * @throws IllegalArgumentException при некорректной форме исходной строки
+     * @throws ArithmeticException при попытке выполнения недопустимых математических операций
+     */
 
     public void solveTheExpression() {
         transformString();
@@ -422,10 +535,22 @@ public class Solver {
         result = calculatingStack.pop();
     }
 
+    /**
+     * Метод получения результата вычисления
+     * выражения
+     * @return результат вычисленного выражения
+     */
+
     public double getResult() {
         solveTheExpression();
         return result;
     }
+
+    /**
+     * Метод изменения исходной строки для
+     * повторного использования объекта класса Solver
+     * @param object строка, содержащее новое математическое выражение
+     */
 
     public void changeTheExpression(String object) {
         inputString = object;
@@ -433,6 +558,12 @@ public class Solver {
         parsingStack.clear();
         calculatingStack.clear();
     }
+
+    /**
+     * Метод вывода результата вычисления выражения
+     * в виде строки
+     * @return строка, содержащая решение выражения в виде числа с плавающей точкой
+     */
 
     @Override
     public String toString() {
